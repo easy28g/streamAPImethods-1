@@ -13,10 +13,13 @@ public class Main {
 
 
         CardRegistrationServiceImpl addClientService = new CardRegistrationServiceImpl();
+
         addClientService.ConnectionSQLite(); // connection DB
 
+        //Добавление Клиента
         //addClientService.addClient();
-        addClientService.selectClientFromFS();
+        //addClientService.selectClientFromFS();
+
 
         addClientService.close(); // close DB
     }

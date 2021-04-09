@@ -1,5 +1,8 @@
 package megacom.service;
 
-public interface CardRegistrationService {
+import megacom.service.impl.CardRegistrationServiceImpl;
 
+public interface CardRegistrationService {
+    CardRegistrationService INSTANCE = new CardRegistrationServiceImpl();
+    void addCard();
 }

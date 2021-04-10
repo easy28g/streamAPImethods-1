@@ -4,13 +4,12 @@ import megacom.models.Adress;
 import megacom.models.Client;
 import megacom.models.Contact;
 import megacom.service.CardRegistrationService;
-import megacom.service.FillTableClientAdress;
 
 import java.sql.*;
 
 import java.util.Scanner;
 
-public class CardRegistrationServiceImpl implements CardRegistrationService, FillTableClientAdress {
+public class CardRegistrationServiceImpl implements CardRegistrationService {
 
     Scanner scanner = new Scanner(System.in);
 
@@ -93,20 +92,15 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
 
 
     //----------------------------Функции получения ID клиента,адреса,контакта----------------
-    /*
+
     private int selectIdClient(int clientId, String firstname, String secondname){
         try{
             statement = connection.createStatement();
-            // scannerClient() функция ввода клиента
-            Client client = scannerClient();
-
-            System.out.print("Введите client_id: ");
-            int clientId = scanner.nextInt();
 
             String query = "SELECT id FROM clients " +
                     " WHERE client_id='"+clientId+"' " +
-                    " AND firstname='"+client.getFirstname()+"' " +
-                    " AND secondname='"+client.getSecondname()+"'";
+                    " AND firstname='"+firstname+"' " +
+                    " AND secondname='"+secondname+"'";
 
             ResultSet rs = statement.executeQuery(query);
             int i=0;
@@ -123,24 +117,22 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
         }
 
     }
-    */
-    private int selectIdAdress(){
+
+    private int selectIdAdress(String city, String district, String street, String house){
         try{
             statement = connection.createStatement();
 
-            Adress adress = scannerAdress();
-
             String query = "SELECT id FROM adress " +
-                    " WHERE city='"+adress.getCity()+"' " +
-                    " AND district='"+adress.getDistrict()+"' " +
-                    " AND street='"+adress.getStreet()+"' " +
-                    " AND house='"+adress.getHouse()+"' ";
+                    " WHERE city='"+city+"' " +
+                    " AND district='"+district+"' " +
+                    " AND street='"+street+"' " +
+                    " AND house='"+house+"' ";
 
             ResultSet rs = statement.executeQuery(query);
             int i=0;
             while (rs.next()){
                 i = rs.getInt("id");
-                System.out.println(i);
+                //System.out.println(i);
             }
 
             if(i==0){
@@ -152,20 +144,22 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
         }
     }
 
-    private int selectIdContact(){
+    private int selectIdContact(String phoneNumber, String email, int idClient){
         try{
             statement = connection.createStatement();
 
-            Contact contact = scannerContact();
-
             String query = "SELECT id FROM contacts WHERE " +
-                    " phone_number='"+contact.getPhoneNumber()+"' AND " +
-                    " email='"+contact.getEmail()+"'";
+                    " phone_number='"+phoneNumber+"' AND " +
+                    " email='"+email+"' AND " +
+                    " id_Client='"+idClient+"' ";
             ResultSet rs = statement.executeQuery(query);
             int i=0;
             while (rs.next()){
                 i = rs.getInt("id");
-                System.out.println(i);
+                //System.out.println(i);
+            }
+            if(i==0){
+                throw new RuntimeException("Такого клиента нет в Базе Данных");
             }
             return i;
         }catch (SQLException e){
@@ -180,11 +174,50 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
 
     //--------------------------Функции ввода данных клиента,адреса,контакта------------------
 
-    private void insertClient(int clientId, String firstname, String secondname){}
+    private void insertClient(int clientId, String firstname, String secondname){
+        try {
+            String query = "INSERT INTO clients(client_id, firstname, secondname) " +
+                    " VALUES('"+clientId+"', '"+firstname+"', '"+secondname+"')";
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка при вводе клиента в Базу Данных");
+        }
+    }
 
-    private void insertAdress(){}
+    private void insertAdress(String city, String district, String street, String house){
+        try{
+            String query = "INSERT INTO adress(city, district, street, house) " +
+                    " VALUES('"+city+"', '"+district+"', '"+street+"', '"+house+"')";
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка при вводе адреса в Базу Данных");
+        }
+    }
 
-    private void insertContact(){}
+    private void insertContact(String phoneNumber, String email, int idClient){
+        try{
+            String query = "INSERT INTO contacts(phone_number, email, id_Client) " +
+                    " VALUES('"+phoneNumber+"', '"+email+"', '"+idClient+"')";
+
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка при вводе контактов в Базу Данных");
+        }
+    }
+
+    private void insertClientAdress(int idAdress, int idClient){
+        try{
+            String query = "INSERT INTO client_adress(id_adress, id_client) " +
+                    " VALUES('"+idAdress+"', '"+idClient+"')";
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка при вводе в таблицу client_adress");
+        }
+    }
 
     //--------------------------Функции ввода данных клиента,адреса,контакта------------------
 
@@ -192,11 +225,28 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
     //****************************************************************************************
     //****************************************************************************************
 
-
-
     @Override
     public void createNewCard() {
+        System.out.println("Регистрация новой карты");
 
+        Client client = scannerClient();
+        Adress adress = scannerAdress();
+        Contact contact = scannerContact();
+
+        // передача данных КЛИЕНТА в функцию добавления внутрь БД
+        insertClient(client.getClientId(), client.getFirstname(), client.getSecondname());
+
+        // передача данных АДРЕСА в функцию добавления внутрь БД
+        insertAdress(adress.getCity(), adress.getDistrict(), adress.getStreet(), adress.getHouse());
+
+        int idClient = selectIdClient(client.getClientId(), client.getFirstname(), client.getSecondname());
+        int idAdress = selectIdAdress(adress.getCity(), adress.getDistrict(), adress.getStreet(), adress.getHouse());
+
+        //передача данных КОНТАКТА в функцию добавления внутрь БД
+        insertContact(contact.getPhoneNumber(), contact.getEmail(), idClient);
+
+        //заполнение таблицы client_adress
+        insertClientAdress(idClient, idAdress);
     }
 
     //****************************************************************************************
@@ -204,9 +254,5 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
 
 
 
-    @Override
-    public void fillTableClientAdress() {
-        //selectIdClient();
-        selectIdAdress();
-    }
+
 }

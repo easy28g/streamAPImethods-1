@@ -23,7 +23,6 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
     }
 
     private Connection getConnection() {
-
         try{
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(
@@ -47,8 +46,10 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
     }
     //-----------------------------Подключение к БД-------------------------------------------
 
+
     //****************************************************************************************
     //****************************************************************************************
+
 
     //-----------------------------Функции ввода клиента,адреса,контакта----------------------
     private Client scannerClient(){
@@ -86,22 +87,32 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
     }
     //-----------------------------Функции ввода клиента,адреса,контакта----------------------
 
+
     //****************************************************************************************
     //****************************************************************************************
 
-    private int getIdClient(){
+
+    //----------------------------Функции получения ID клиента,адреса,контакта----------------
+    /*
+    private int selectIdClient(int clientId, String firstname, String secondname){
         try{
             statement = connection.createStatement();
-
             // scannerClient() функция ввода клиента
             Client client = scannerClient();
 
-            String query = "SELECT id FROM clients WHERE client_id='"+client.getClientId()+"' AND " +
-                    " firstname='"+client.getFirstname()+"' AND secondname='"+client.getSecondname()+"'";
+            System.out.print("Введите client_id: ");
+            int clientId = scanner.nextInt();
+
+            String query = "SELECT id FROM clients " +
+                    " WHERE client_id='"+clientId+"' " +
+                    " AND firstname='"+client.getFirstname()+"' " +
+                    " AND secondname='"+client.getSecondname()+"'";
+
             ResultSet rs = statement.executeQuery(query);
             int i=0;
             while (rs.next()){
                 i = rs.getInt("id");
+                //System.out.println(i);
             }
             if(i==0){
                 throw new RuntimeException("Такого клиента нет в Базе Данных");
@@ -112,16 +123,90 @@ public class CardRegistrationServiceImpl implements CardRegistrationService, Fil
         }
 
     }
+    */
+    private int selectIdAdress(){
+        try{
+            statement = connection.createStatement();
+
+            Adress adress = scannerAdress();
+
+            String query = "SELECT id FROM adress " +
+                    " WHERE city='"+adress.getCity()+"' " +
+                    " AND district='"+adress.getDistrict()+"' " +
+                    " AND street='"+adress.getStreet()+"' " +
+                    " AND house='"+adress.getHouse()+"' ";
+
+            ResultSet rs = statement.executeQuery(query);
+            int i=0;
+            while (rs.next()){
+                i = rs.getInt("id");
+                System.out.println(i);
+            }
+
+            if(i==0){
+                throw new RuntimeException("Этого адреса нет в Базе Данных");
+            }
+            return i;
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка в функции получения ID адреса");
+        }
+    }
+
+    private int selectIdContact(){
+        try{
+            statement = connection.createStatement();
+
+            Contact contact = scannerContact();
+
+            String query = "SELECT id FROM contacts WHERE " +
+                    " phone_number='"+contact.getPhoneNumber()+"' AND " +
+                    " email='"+contact.getEmail()+"'";
+            ResultSet rs = statement.executeQuery(query);
+            int i=0;
+            while (rs.next()){
+                i = rs.getInt("id");
+                System.out.println(i);
+            }
+            return i;
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка в функции при получении ID контакта");
+        }
+    }
+    //----------------------------Функции получения ID клиента,адреса,контакта----------------
+
+    //****************************************************************************************
+    //****************************************************************************************
+
+
+    //--------------------------Функции ввода данных клиента,адреса,контакта------------------
+
+    private void insertClient(int clientId, String firstname, String secondname){}
+
+    private void insertAdress(){}
+
+    private void insertContact(){}
+
+    //--------------------------Функции ввода данных клиента,адреса,контакта------------------
+
+
+    //****************************************************************************************
+    //****************************************************************************************
+
+
 
     @Override
     public void createNewCard() {
-        Client client = scannerClient();
-        Adress adress = scannerAdress();
-        Contact contact = scannerContact();
+
     }
+
+    //****************************************************************************************
+    //****************************************************************************************
+
+
 
     @Override
     public void fillTableClientAdress() {
-        getIdClient();
+        //selectIdClient();
+        selectIdAdress();
     }
 }

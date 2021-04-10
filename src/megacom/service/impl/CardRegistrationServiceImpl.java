@@ -4,7 +4,6 @@ import megacom.models.Adress;
 import megacom.models.Client;
 import megacom.service.AddClientService;
 import megacom.service.CardRegistrationService;
-import megacom.service.FillClientAdressService;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,8 +12,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class CardRegistrationServiceImpl
-        implements CardRegistrationService, AddClientService,
-        FillClientAdressService {
+        implements CardRegistrationService, AddClientService {
 
     Scanner scanner = new Scanner(System.in);
 
@@ -121,8 +119,7 @@ public class CardRegistrationServiceImpl
 
     //------------------------------Таблица client_adress-------------------------------------
     // Внутренний метод добавления адреса
-    private int addAdress() {
-
+    private void addAdress() {
         try {
             System.out.print("Введите город: ");
             String city = scanner.next();
@@ -138,10 +135,24 @@ public class CardRegistrationServiceImpl
             String query = "INSERT INTO adress(city, district, street, house) " +
                     " VALUES('"+adress.getCity()+"', '"+adress.getDistrict()+"', " +
                     " '"+adress.getStreet()+"', '"+adress.getHouse()+"')";
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
 
+            fillClientAdressTable(city, district, street, house);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при добавлении 'Адресса'");
+            //throwables.printStackTrace();
+        }
+    }
+
+    private int getIdAdress(String city, String district, String street, String house){
+
+        try {
+            statement = connection.createStatement();
             String queryIdAdress = "SELECT id FROM adress WHERE" +
-                    " city='"+adress.getCity()+"' AND district='"+adress.getDistrict()+"' AND" +
-                    " street='"+adress.getStreet()+"', house='"+adress.getHouse()+'"';
+                    " city='"+city+"' AND district='"+district+"' AND" +
+                    " street='"+street+"', house='"+house+'"';
             ResultSet rs = statement.executeQuery(queryIdAdress);
             //ArrayList<Integer> listIdAdress = new ArrayList<>();
             int i=0;
@@ -149,15 +160,11 @@ public class CardRegistrationServiceImpl
                 i = rs.getInt("id");
                 //listIdAdress.add(i);
             }
-            statement = connection.createStatement();
-            statement.executeUpdate(query);
             return i;
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при добавлении 'Адресса'");
+        } catch (SQLException throwables) {
             //throwables.printStackTrace();
+            throw new RuntimeException("Ошибка при получении ID адреса в методе 'getIdAdress'");
         }
-
     }
 
     // Внутренний метод добавления клиента в Базу Данных
@@ -195,14 +202,13 @@ public class CardRegistrationServiceImpl
     }
 
     // Связывание клиента и адреса в общей таблице по их ID
-    @Override
-    public void fillClientAdressTable() {
-        int idAdress = addAdress();
-        int idClient = addClient();
+    private void fillClientAdressTable(String city, String district, String street, String house) {
+
+        int idAdress = getIdAdress(city, district, street, house);
 
         try {
             String query = "INSERT INTO client_adress(id_adress, id_client)" +
-                    " VALUES('"+idAdress+"', '"+idClient+"')";
+                    " VALUES('"+idAdress+"')";
 
             statement = connection.createStatement();
             statement.executeUpdate(query);

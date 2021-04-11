@@ -1,15 +1,19 @@
 package megacom.service.impl;
 
+import megacom.enums.CardType;
 import megacom.models.Adress;
+import megacom.models.Card;
 import megacom.models.Client;
 import megacom.models.Contact;
 import megacom.service.CardRegistrationService;
 
+
 import java.sql.*;
 
+import java.util.Calendar;
 import java.util.Scanner;
 
-public class CardRegistrationServiceImpl implements CardRegistrationService {
+public class CardRegistrationServiceImpl<CardService> implements CardRegistrationService {
 
     Scanner scanner = new Scanner(System.in);
 
@@ -84,6 +88,27 @@ public class CardRegistrationServiceImpl implements CardRegistrationService {
         Contact contact = new Contact(phoneNumber, email);
         return contact;
     }
+
+    private Card scannerCard(){
+        System.out.print("Введите логин карты: ");
+        String numberCard = scanner.next();
+        System.out.print("Введите пароль карты: ");
+        String passwordCard = scanner.next();
+        System.out.println("Выберите тип карты: Classic - 1, GOLD - 2, PLATINUM - 3 ");
+        CardType cardType;
+        int chooseTypeCard = scanner.nextInt();
+        switch (chooseTypeCard){
+            case 1: cardType = CardType.Classic; break;
+            case 2: cardType = CardType.GOLD; break;
+            case 3: cardType = CardType.PLATINUM; break;
+            default: throw new RuntimeException("Такого типа кврты нет");
+        }
+
+        Card card = new Card(numberCard, passwordCard, cardType);
+
+        return card;
+    }
+
     //-----------------------------Функции ввода клиента,адреса,контакта----------------------
 
 
@@ -166,6 +191,27 @@ public class CardRegistrationServiceImpl implements CardRegistrationService {
             throw new RuntimeException("Ошибка в функции при получении ID контакта");
         }
     }
+
+    private int selectIdCard(String cardNumber){
+        try{
+            statement = connection.createStatement();
+
+            String query = "SELECT id FROM cards WHERE number_card='"+cardNumber+"'";
+            ResultSet rs = statement.executeQuery(query);
+            int i=0;
+            while(rs.next()){
+                i = rs.getInt("id");
+            }
+            if(i==0){
+                throw new RuntimeException("Такой карты нет в Базе Данных");
+            }
+            return i;
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка в функции при получении ID карты");
+        }
+    }
+
+
     //----------------------------Функции получения ID клиента,адреса,контакта----------------
 
     //****************************************************************************************
@@ -180,6 +226,7 @@ public class CardRegistrationServiceImpl implements CardRegistrationService {
                     " VALUES('"+clientId+"', '"+firstname+"', '"+secondname+"')";
             statement = connection.createStatement();
             statement.executeUpdate(query);
+
         }catch (SQLException e){
             throw new RuntimeException("Ошибка при вводе клиента в Базу Данных");
         }
@@ -219,6 +266,20 @@ public class CardRegistrationServiceImpl implements CardRegistrationService {
         }
     }
 
+    private void insertCard(int cardId, String cardNumber, String passwordCard, Calendar startDate,
+                            Calendar endDate, CardType cardType, int id_Client){ // в карте нет блять никакого ID-Client
+        try{
+            String query = "INSERT INTO cards(card_id, number_card, password_card, " +
+                    " start_date, end_date, type_of_card, id_Client) " +
+                    " VALUES('"+cardId+"', '"+cardNumber+"', '"+passwordCard+"', " +
+                    " '"+startDate+"', '"+endDate+"', '"+cardType+"', '"+id_Client+"')";
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            throw new RuntimeException("Ошибка при вводе в таблицу Cards");
+        }
+    }
+
     //--------------------------Функции ввода данных клиента,адреса,контакта------------------
 
 
@@ -247,6 +308,11 @@ public class CardRegistrationServiceImpl implements CardRegistrationService {
 
         //заполнение таблицы client_adress
         insertClientAdress(idClient, idAdress);
+
+        Card card = scannerCard();
+
+        insertCard(card.getCardId(), card.getCardNumber(), card.getCardPassword(),
+                   card.getStartDate(), card.getEndDate(), card.getCardType(), idClient);
     }
 
     //****************************************************************************************

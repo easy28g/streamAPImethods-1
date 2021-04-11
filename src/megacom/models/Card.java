@@ -2,22 +2,26 @@ package megacom.models;
 
 import megacom.enums.CardType;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class Card {
     private int cardId;
-    private int cardNumber;
-    private int cardPassword;
-    private Date startDate;
-    private Date endDate;
+    private String cardNumber;
+    private String cardPassword;
+    private Calendar startDate;
+    private Calendar endDate;
     private CardType cardType;
 
-    public Card(int cardNumber, int cardPassword, Date startDate, Date endDate, CardType cardType) {
+    Calendar calendar = new GregorianCalendar(3000, 0, 1);
+
+    public Card(String  cardNumber, String  cardPassword, CardType cardType) {
         this.cardId = (int)(Math.random()*(9999999-1000000))-1000000;
         this.cardNumber = cardNumber;
         this.cardPassword = cardPassword;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.startDate = Calendar.getInstance();
+        this.endDate = calendar;
         this.cardType = cardType;
     }
 
@@ -25,41 +29,35 @@ public class Card {
         return cardId;
     }
 
-    public int getCardNumber() {
-        if(cardNumber<10000){
-            System.out.println("CardNumber < 10000");
-        }
+    public String  getCardNumber() {
         return cardNumber;
     }
 
-    public void setCardNumber(int cardNumber) {
+    public void setCardNumber(String  cardNumber) {
         this.cardNumber = cardNumber;
     }
 
-    public int getCardPassword() {
-        if(cardPassword<1000){
-            System.out.println("CardPassword < 1000");
-        }
+    public String  getCardPassword() {
         return cardPassword;
     }
 
-    public void setCardPassword(int cardPassword) {
+    public void setCardPassword(String  cardPassword) {
         this.cardPassword = cardPassword;
     }
 
-    public Date getStartDate() {
+    public Calendar getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(Calendar startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public Calendar getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(Calendar endDate) {
         this.endDate = endDate;
     }
 
